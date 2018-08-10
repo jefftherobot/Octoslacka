@@ -1771,12 +1771,25 @@ class OctoslackPlugin(
                         uploadFilename = "Snapshot_" + str(uuid.uuid1()).replace(
                             "-", ""
                         ) + ".png"
+						
+						httpClient = urllib3.ProxyManager(
+                            "http://localhost:3128",
+                            timeout=urllib3.Timeout.DEFAULT_TIMEOUT,
+                            cert_reqs='CERT_REQUIRED',
+                            retries=urllib3.Retry(
+                                total=5,
+                                backoff_factor=0.2,
+                                status_forcelist=[500, 502, 503, 504]
+                            )
+                         )
+
 
                         minioClient = Minio(
                             minio_config["Endpoint"],
                             access_key=minioAccessKey,
                             secret_key=minioSecretKey,
                             secure=minio_config["secure"],
+							http_client=httpClient
                         )
                         minioUploadRsp = minioClient.fput_object(
                             minioBucket, uploadFilename, local_file_path
